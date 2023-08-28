@@ -1,0 +1,18 @@
+extends layout
+
+block content
+    h1= title
+
+    table(class='table table-striped')
+        thead
+            th title
+            th author
+        each book in book_list
+            tr
+                td
+                    a(href=book.url) #{book.title}
+                td
+                    p #{book.author.name}
+
+        else
+            li There are no books.

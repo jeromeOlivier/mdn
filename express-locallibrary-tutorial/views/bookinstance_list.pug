@@ -1,0 +1,28 @@
+extends layout
+
+block content
+    h1= title
+
+    table(class='table table-striped')
+        thead
+            th title
+            th status
+            th due date
+        each val in bookinstance_list
+            tr
+                td
+                    a(href=val.url) #{val.book.title} : #{val.imprint}
+                td
+                    if val.status=== 'Available'
+                        span.text-success #{val.status}
+                    else if val.status=== 'Maintenance'
+                        span.text-danger #{val.status}
+                    else
+                        span.text-warning #{val.status}
+                if val.status!='Available'
+                    td
+                        span (Due: #{val.due_back_formatted})
+                else
+                    td
+        else
+            tr(span="col=2") There are no copies in this library.
