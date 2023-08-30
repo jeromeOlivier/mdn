@@ -1,0 +1,12 @@
+extends layout
+
+block content
+    h1= title
+
+    table(class='table table-striped')
+        thead
+            th name
+        each genre in genre_list
+            tr
+                td
+                    a(href=genre.url) #{genre.name}

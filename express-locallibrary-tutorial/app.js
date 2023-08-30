@@ -21,10 +21,10 @@ const MONGO_USER = process.env.MONGO_USER;
 mongoose.set("strictQuery", false);
 const mongoDB = `mongodb+srv://${MONGO_USER}:${MONGO_PASSWORD}@${MONGO_HOST}/?retryWrites=true&w=majority`;
 
-async function mongo() {
+const mongo = async () => {
     await mongoose.connect(mongoDB);
     console.log(`Connected to MongoDB v${mongoose.version}`);
-}
+};
 
 mongo().catch((err) => console.log(err));
 

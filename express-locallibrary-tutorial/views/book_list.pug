@@ -11,8 +11,7 @@ block content
             tr
                 td
                     a(href=book.url) #{book.title}
-                td
-                    p #{book.author.name}
+                td #{book.author.name}
 
         else
-            li There are no books.
+            tr There are no books.

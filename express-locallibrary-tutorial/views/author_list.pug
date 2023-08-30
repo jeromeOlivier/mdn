@@ -1,0 +1,29 @@
+extends layout
+
+block content
+    h1= title
+
+    table(class='table table-striped')
+        thead
+            th Name
+            th Born
+            th Deceased
+            th Lifespan
+        each author in author_list
+            tr
+                td
+                    a(href=author.url) #{author.name}
+                if author.date_of_birth
+                    td #{author.date_of_birth_formatted}
+                else
+                    td
+                if author.date_of_death
+                    td #{author.date_of_death_formatted}
+                else
+                    td
+                if author.lifespan != "data missing"
+                    td #{author.lifespan.years}y #{author.lifespan.months}m #{Math.round(author.lifespan.days)}d
+                else
+                    td #{author.lifespan}
+        else
+            tr(span="col=2") There are no authors in this database.
