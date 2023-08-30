@@ -66,9 +66,13 @@ const genre_create_post = [
                 // Genre exists, redirect to its details page
                 res.redirect(genreExists.url);
             } else {
-                await genre.save();
-                // New genre saved. Redirect to genre detail page.
-                res.redirect(genre.url);
+                try {
+                    await genre.save();
+                    // New genre saved. Redirect to genre detail page.
+                    res.redirect(genre.url);
+                } catch (e) {
+                    throw new Error(e);
+                }
             }
         }
     }),

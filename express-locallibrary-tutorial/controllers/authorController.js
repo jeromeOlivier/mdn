@@ -1,6 +1,9 @@
+// external
+const { body, validationResult } = require("express-validator");
+const asyncHandler = require("express-async-handler");
+// internal
 const Author = require("../models/author");
 const Book = require("../models/book");
-const asyncHandler = require("express-async-handler");
 
 // Display list of all authors
 const author_list = asyncHandler(async (req, res, next) => {
@@ -35,13 +38,65 @@ const author_detail = asyncHandler(async (req, res, next) => {
 
 // Display Author create form on GET.
 const author_create_get = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Author create GET");
+    res.render("author_form", { title: "Create Author" });
 });
 
 // Handle Author create on POST.
-const author_create_post = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Author create POST");
-});
+const author_create_post = [
+    body("first_name")
+        .trim()
+        .isLength({ min: 1 })
+        .escape()
+        .withMessage("First name required.")
+        .isAlphanumeric()
+        .withMessage("First name has non-alphanumeric characters."),
+    body("family_name")
+        .trim()
+        .isLength({ min: 1 })
+        .escape()
+        .withMessage("Family name required")
+        .isAlphanumeric()
+        .withMessage("Family name has non alphanumeric characters."),
+    body("date_of_birth", "Invalid date of birth")
+        .optional({ values: "falsy" })
+        .isISO8601()
+        .toDate(),
+    body("date_of_death", "Invalid date of death")
+        .optional({ values: "falsy" })
+        .isISO8601()
+        .toDate(),
+
+    // process request after validation and sanitization
+    asyncHandler(async (req, res, next) => {
+        // extract the validation errors from a request
+        const errors = validationResult(req);
+
+        const author = new Author({
+            first_name: req.body.first_name,
+            family_name: req.body.family_name,
+            date_of_birth: req.ody.date_of_birth,
+            date_of_death: req.body.date_of_death,
+        });
+
+        if (!errors.isEmpty()) {
+            // if there are errors, re-render form with sanitized values & error messages
+            res.render("author_form", {
+                title: "Create Author",
+                author: author,
+                errors: errors.array(),
+            });
+            return;
+        } else {
+            try {
+                // if form data is valid save author
+                await author.save();
+            } catch (e) {
+                // if save fails for whatever reason
+                throw new Error(e);
+            }
+        }
+    }),
+];
 
 // Display Author delete form on GET.
 const author_delete_get = asyncHandler(async (req, res, next) => {
