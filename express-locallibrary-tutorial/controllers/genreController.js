@@ -5,13 +5,13 @@ const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 
 // Display list of all Genre.
-genre_list = asyncHandler(async (req, res, next) => {
+const genre_list = asyncHandler(async (req, res, next) => {
     const allGenres = await Genre.find().sort({ name: 1 }).exec();
     res.render("genre_list", { title: "Genre List", genre_list: allGenres });
 });
 
 // Display detail page for a specific Genre.
-genre_detail = asyncHandler(async (req, res, next) => {
+const genre_detail = asyncHandler(async (req, res, next) => {
     const [genre, booksInGenre] = await Promise.all([
         Genre.findById(req.params.id).exec(),
         Book.find({ genre: req.params.id }, "title summary").exec(),
@@ -29,12 +29,12 @@ genre_detail = asyncHandler(async (req, res, next) => {
 });
 
 // Display Genre create form on GET.
-genre_create_get = asyncHandler(async (req, res, next) => {
+const genre_create_get = asyncHandler(async (req, res, next) => {
     res.render("genre_form", { title: "Create Genre" });
 });
 
 // Handle Genre create on POST.
-genre_create_post = [
+const genre_create_post = [
     // Validate and sanitize the name field.
     body("name", "Genre must be at least 3 characters")
         .trim()
@@ -75,22 +75,22 @@ genre_create_post = [
 ];
 
 // Display Genre delete form on GET.
-genre_delete_get = asyncHandler(async (req, res, next) => {
+const genre_delete_get = asyncHandler(async (req, res, next) => {
     res.send("NOT IMPLEMENTED: Genre delete GET");
 });
 
 // Handle Genre delete on POST.
-genre_delete_post = asyncHandler(async (req, res, next) => {
+const genre_delete_post = asyncHandler(async (req, res, next) => {
     res.send("NOT IMPLEMENTED: Genre delete POST");
 });
 
 // Display Genre update form on GET.
-genre_update_get = asyncHandler(async (req, res, next) => {
+const genre_update_get = asyncHandler(async (req, res, next) => {
     res.send("NOT IMPLEMENTED: Genre update GET");
 });
 
 // Handle Genre update on POST.
-genre_update_post = asyncHandler(async (req, res, next) => {
+const genre_update_post = asyncHandler(async (req, res, next) => {
     res.send("NOT IMPLEMENTED: Genre update POST");
 });
 
