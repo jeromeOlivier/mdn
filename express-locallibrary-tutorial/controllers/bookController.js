@@ -32,6 +32,95 @@ const index = asyncHandler(async (req, res, next) => {
     });
 });
 
+const escapeButNotQuotes = (val) =>
+    val.replace(/[&<]/g, (char) => ({ "&": "&amp;", "<": "&lt;" })[char]);
+
+/** CREATE **/
+// Display book create form on GET.
+const book_create_get = asyncHandler(async (req, res, next) => {
+    // get all authors and genres to add them to books
+    const [allAuthors, allGenres] = await Promise.all([
+        Author.find().exec(),
+        Genre.find().exec(),
+    ]);
+    res.render("book_form", {
+        title: "Create Book",
+        authors: allAuthors,
+        genres: allGenres,
+    });
+});
+
+// Handle book creation in three steps
+const book_create_post = [
+    // first, convert genre to an array
+    (req, res, next) => {
+        if (!(req.body.genre instanceof Array)) {
+            if (typeof req.body.genre === "undefined") req.body.genre = [];
+            else req.body.genre = new Array(req.body.genre);
+        }
+        next();
+    },
+
+    // second, validate and sanitize the fields
+    body("title")
+        .trim()
+        .isLength({ min: 1 })
+        .escape()
+        .withMessage("Title required"),
+    body("author", "Author required").trim().isLength({ min: 1 }).escape(),
+    body("summary", "Summary required")
+        .trim()
+        .isLength({ min: 1 })
+        .customSanitizer(escapeButNotQuotes),
+    body("isbn", "ISBN required").trim().isLength({ min: 1 }).escape(),
+    body("genre.*").escape(), // genre is an array
+
+    // third, process the request
+    asyncHandler(async (req, res, next) => {
+        // extract errors from step two if there are any
+        const errors = validationResult(req);
+        // create a new book object (valid or not, doesn't matter)
+        const book = new Book({
+            title: req.body.title,
+            author: req.body.author,
+            summary: req.body.summary,
+            isbn: req.body.isbn,
+            genre: req.body.genre,
+        });
+
+        // if errors exist, re-render form with sanitized values + error
+        // message(s)
+        if (!errors.isEmpty()) {
+            // get author and genre
+            const [allAuthors, allGenres] = await Promise.all([
+                Author.find().exec(),
+                Genre.find().exec(),
+            ]);
+
+            // Mark selected genres as checked.
+            for (const genre of allGenres) {
+                if (book.genre.includes(genre._id)) {
+                    genre.checked = "true";
+                }
+            }
+            res.render("book_form", {
+                title: "Create Book",
+                authors: allAuthors,
+                genres: allGenres,
+                book: book,
+                errors: errors.array(),
+            });
+            await book.save();
+            res.redirect(book.url);
+        } else {
+            // if data is valid, save the book
+            await book.save();
+            res.redirect(book.url);
+        }
+    }),
+];
+
+/** READ **/
 // Display list of all books.
 const book_list = asyncHandler(async (req, res, next) => {
     const allBooks = await Book.find({}, "title author")
@@ -65,86 +154,111 @@ const book_detail = asyncHandler(async (req, res, next) => {
     });
 });
 
-// Display book create form on GET.
-const book_create_get = asyncHandler(async (req, res, next) => {
-    // get all authors and genres to add them to books
-    const [allAuthors, allGenres] = await Promise.all([
-        Author.find().exec(),
-        Genre.find().exec(),
+/** UPDATE **/
+// Display book update form on GET.
+const book_update_get = asyncHandler(async (req, res, next) => {
+    // get book and associated author and genres
+    const [book, allAuthors, allGenres] = await Promise.all([
+        Book.findById(req.params.id)
+            .populate("author")
+            .populate("genre")
+            .orFail(new Error("Book not found")),
+        Author.find().orFail(new Error("Author not found")),
+        Genre.find().orFail(new Error("Genre not found")),
     ]);
+
+    // loop through genres and check book genres
+    for (const genre of allGenres) {
+        for (const book_g of book.genre) {
+            if (genre._id.toString() === book_g._id.toString()) {
+                genre.checked = "true";
+            }
+        }
+    }
+
     res.render("book_form", {
-        title: "Create Book",
+        title: "Update Book",
         authors: allAuthors,
         genres: allGenres,
+        book: book,
     });
 });
 
-// Handle book creation in three steps
-const book_create_post = [
-    // first, convert genre to an array
+// Handle book update on POST.
+const book_update_post = [
+    // convert genre field to an array of genres
     (req, res, next) => {
         if (!(req.body.genre instanceof Array)) {
-            if (typeof req.body.genre === "undefined") req.body.genre = [];
-            else req.body.genre = new Array(req.body.genre);
+            if (typeof req.body.genre === "undefined") {
+                req.body.genre = [];
+            } else {
+                req.body.genre = new Array(req.body.genre);
+            }
         }
         next();
     },
 
-    // second, validate and sanitize the fields
-    body("title")
+    // validate and sanitize the fields
+    body("title", "Title required").trim().isLength({ min: 1 }).escape(),
+    body("author", "Author required").trim().isLength({ min: 1 }).escape(),
+    body("summary", "summary required")
         .trim()
         .isLength({ min: 1 })
-        .escape()
-        .withMessage("Title required"),
-    body("author", "Author required").trim().isLength({ min: 1 }).escape(),
-    body("summary", "Summary required").trim().isLength({ min: 1 }).escape(),
-    body("isbn", "ISBN required").trim().isLength({ min: 1 }).escape(),
-    body("genre.*").escape(), // genre is an array
+        .customSanitizer(escapeButNotQuotes),
+    body("isbn", "isbn required").trim().isLength({ min: 1 }).escape(),
+    body("genre.*").escape(),
 
-    // third, process the request
+    // process request after validation and sanitization
     asyncHandler(async (req, res, next) => {
-        // extract errors from step two if there are any
+        // extract the validation errors from a request
         const errors = validationResult(req);
-        // create a new book object (valid or not, doesn't matter)
+
+        // create a book object with escaped / trimmed data and old id
         const book = new Book({
             title: req.body.title,
             author: req.body.author,
             summary: req.body.summary,
             isbn: req.body.isbn,
-            genre: req.body.genre,
+            genre: typeof req.body.genre === "undefined" ? [] : req.body.genre,
+            _id: req.params.id, // required, or new id assigned
         });
 
-        // if errors exist, re-render form with sanitized values + error message(s)
         if (!errors.isEmpty()) {
-            // get author and genre
+            // if there are errors, repopulate form with sanitized values
+            // and error messages
             const [allAuthors, allGenres] = await Promise.all([
                 Author.find().exec(),
                 Genre.find().exec(),
             ]);
 
-            // Mark selected genres as checked.
+            // loop and check selected genres
             for (const genre of allGenres) {
-                if (book.genre.includes(genre._id)) {
+                if (book.genre.indexOf(genre._id) > -1) {
                     genre.checked = "true";
                 }
             }
             res.render("book_form", {
-                title: "Create Book",
+                title: "Update Book",
                 authors: allAuthors,
                 genres: allGenres,
                 book: book,
                 errors: errors.array(),
             });
-            await book.save();
-            res.redirect(book.url);
+            return;
         } else {
-            // if data is valid, save the book
-            await book.save();
-            res.redirect(book.url);
+            // data from form is valid, update the record
+            const updatedBook = await Book.findByIdAndUpdate(
+                req.params.id,
+                book,
+                {}
+            );
+            // redirect to book detail page
+            res.redirect(updatedBook.url);
         }
     }),
 ];
 
+/** DELETE **/
 // Display book delete form on GET.
 const book_delete_get = asyncHandler(async (req, res, next) => {
     res.send("NOT IMPLEMENTED: Book delete GET");
@@ -153,16 +267,6 @@ const book_delete_get = asyncHandler(async (req, res, next) => {
 // Handle book delete on POST.
 const book_delete_post = asyncHandler(async (req, res, next) => {
     res.send("NOT IMPLEMENTED: Book delete POST");
-});
-
-// Display book update form on GET.
-const book_update_get = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Book update GET");
-});
-
-// Handle book update on POST.
-const book_update_post = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Book update POST");
 });
 
 module.exports = {
