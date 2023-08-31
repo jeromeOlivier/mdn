@@ -79,13 +79,13 @@ const author_create_post = [
         });
 
         if (!errors.isEmpty()) {
-            // if there are errors, re-render form with sanitized values & error messages
+            // if there are errors, re-render form with sanitized values &
+            // error messages
             res.render("author_form", {
                 title: "Create Author",
                 author: author,
                 errors: errors.array(),
             });
-            return;
         } else {
             try {
                 // if form data is valid save author
@@ -100,12 +100,48 @@ const author_create_post = [
 
 // Display Author delete form on GET.
 const author_delete_get = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Author delete GET");
+    const [author, allBooksByAuthor] = await Promise.all([
+        Author.findById(req.params.id).exec(),
+        Book.find({ author: req.params.id }, "title summary").exec(),
+    ]);
+
+    if (author === null) {
+        // no results
+        res.redirect("/catalog/authors");
+    }
+
+    res.render("author_delete", {
+        title: "Delete Author",
+        author: author,
+        author_books: allBooksByAuthor,
+    });
 });
 
 // Handle Author delete on POST.
 const author_delete_post = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Author delete POST");
+    // Get details of author and all their books (in parallel)
+    const [author, allBooksByAuthor] = await Promise.all([
+        Author.findById(req.params.id).exec(),
+        Book.find({ author: req.params.id }, "title summary").exec(),
+    ]);
+
+    if (allBooksByAuthor.length > 0) {
+        // author has books, send user back
+        res.render("author_delete", {
+            title: "Delete Author",
+            author: author,
+            author_books: allBooksByAuthor,
+        });
+    } else {
+        // if author has no books, attempt deletion
+        try {
+            console.log("request:", req.body);
+            await Author.findByIdAndRemove(req.body.authorid);
+        } catch (e) {
+            throw new Error(e);
+        }
+        res.redirect("/catalog/authors");
+    }
 });
 
 // Display Author update form on GET
