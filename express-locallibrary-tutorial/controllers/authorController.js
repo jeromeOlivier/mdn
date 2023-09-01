@@ -4,7 +4,7 @@ const asyncHandler = require("express-async-handler");
 // internal
 const Author = require("../models/author");
 const Book = require("../models/book");
-const { validateAuthorAttributes } = require("../utils/validators");
+const { validateAuthor } = require("../utils/validators");
 
 /** CREATE **/
 // Display Author create form on GET.
@@ -14,7 +14,7 @@ const author_create_get = asyncHandler(async (req, res, next) => {
 
 // Handle Author create on POST.
 const author_create_post = [
-    validateAuthorAttributes, asyncHandler(async (req, res, next) => {
+    validateAuthor, asyncHandler(async (req, res, next) => {
         // extract the validation errors from a request
         const errors = validationResult(req);
         // create new author object
@@ -79,7 +79,8 @@ const author_update_get = asyncHandler(async (req, res, next) => {
 
 // Handle Author update on POST
 const author_update_post = [
-    validateAuthorAttributes, asyncHandler(async (req, res, next) => {
+    validateAuthor,
+    asyncHandler(async (req, res, next) => {
         const validationErrors = validationResult(req);
         const author = new Author({
             first_name: req.body.first_name,

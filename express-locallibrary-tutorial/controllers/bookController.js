@@ -1,12 +1,13 @@
 // external
 const asyncHandler = require("express-async-handler");
+const { body, validationResult } = require("express-validator");
 // internal
 const Book = require("../models/book");
 const Author = require("../models/author");
 const Genre = require("../models/genre");
 const BookInstance = require("../models/bookinstance");
-const { isLength } = require("validator");
-const { body, validationResult } = require("express-validator");
+const { validateBook } = require('../utils/validators');
+// const { isLength } = require("validator");
 
 const index = asyncHandler(async (req, res, next) => {
     const [
@@ -31,19 +32,6 @@ const index = asyncHandler(async (req, res, next) => {
         genre_count: numGenres,
     });
 });
-
-const escapeButNotQuotes = (val) =>
-    val.replace(
-        /[&<>{}]/g,
-        (char) =>
-            ({
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                "{": "&#123;",
-                "}": "&#125;",
-            })[char]
-    );
 
 /** CREATE **/
 // Display book create form on GET.
@@ -72,19 +60,7 @@ const book_create_post = [
     },
 
     // second, validate and sanitize the fields
-    body("title")
-        .trim()
-        .isLength({ min: 1 })
-        .escape()
-        .withMessage("Title required"),
-    body("author", "Author required").trim().isLength({ min: 1 }).escape(),
-    body("summary", "Summary required")
-        .trim()
-        .isLength({ min: 1 })
-        .customSanitizer(escapeButNotQuotes),
-    body("isbn", "ISBN required").trim().isLength({ min: 1 }).escape(),
-    body("genre.*").escape(), // genre is an array
-
+    validateBook,
     // third, process the request
     asyncHandler(async (req, res, next) => {
         // extract errors from step two if there are any
@@ -209,14 +185,7 @@ const book_update_post = [
     },
 
     // validate and sanitize the fields
-    body("title", "Title required").trim().isLength({ min: 1 }).escape(),
-    body("author", "Author required").trim().isLength({ min: 1 }).escape(),
-    body("summary", "summary required")
-        .trim()
-        .isLength({ min: 1 })
-        .customSanitizer(escapeButNotQuotes),
-    body("isbn", "isbn required").trim().isLength({ min: 1 }).escape(),
-    body("genre.*").escape(),
+    validateBook,
 
     // process request after validation and sanitization
     asyncHandler(async (req, res, next) => {

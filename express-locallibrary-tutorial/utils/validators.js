@@ -1,6 +1,7 @@
 const { body } = require("express-validator");
 
-const authorNameValidator = [
+// for author
+const validateAuthorName = [
         body("first_name")
         .trim()
         .isLength({ min: 1 })
@@ -17,7 +18,7 @@ const authorNameValidator = [
         .withMessage("Family name has non alphanumeric characters."),
 ];
 
-const authorDatesValidator = [
+const validateAuthorDates = [
     body("date_of_birth", "Invalid date of birth")
         .optional({ values: "falsy" })
         .isISO8601()
@@ -28,6 +29,28 @@ const authorDatesValidator = [
         .toDate(),
 ];
 
-const validateAuthorAttributes = [...authorNameValidator, ...authorDatesValidator];
+const validateAuthor = [...validateAuthorName, ...validateAuthorDates];
 
-module.exports = { validateAuthorAttributes, }
+// for books
+const escapeButNotQuotes = (val) =>
+    val.replace(
+        /[&<>{}]/g,
+        (char) =>
+            ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                "{": "&#123;",
+                "}": "&#125;",
+            })[char]
+    );
+
+const validateBook = [
+    body("title", "Title required").trim().isLength({ min: 1 }).escape(),
+    body("author", "Author required").trim().isLength({ min: 1 }).escape(),
+    body("summary", "Summary required").trim().isLength({ min: 1 }).customSanitizer(escapeButNotQuotes),
+    body("isbn", "ISBN required").trim().isLength({ min: 1 }).escape(),
+    body("genre.*").escape(), // genre is an array
+]
+
+module.exports = { validateAuthor, validateBook }
