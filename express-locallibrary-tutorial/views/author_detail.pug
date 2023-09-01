@@ -19,5 +19,7 @@ block content
                 p No titles associated with this author
 
         hr
-        p
-            a(href=author.url+'/delete') Delete author
+        button.btn.btn-danger
+            a.text-white(href=author.url + '/delete') Delete Author
+        button.btn.btn-secondary.ml-3
+            a.text-white(href=author.url + '/update') Update Author

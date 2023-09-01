@@ -33,7 +33,17 @@ const index = asyncHandler(async (req, res, next) => {
 });
 
 const escapeButNotQuotes = (val) =>
-    val.replace(/[&<]/g, (char) => ({ "&": "&amp;", "<": "&lt;" })[char]);
+    val.replace(
+        /[&<>{}]/g,
+        (char) =>
+            ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                "{": "&#123;",
+                "}": "&#125;",
+            })[char]
+    );
 
 /** CREATE **/
 // Display book create form on GET.
