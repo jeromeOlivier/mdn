@@ -10,8 +10,7 @@ block content
             input#first_name.form-control(type='text' placeholder='First Name' name='first_name' required='true' value=(undefined === author ? '' : author.first_name) )
             label.mt-3(for='family_name') Family Name:
             input#family_name.form-control(type='text' placeholder='Family Name' name='family_name' required='true' value=(undefined === author ? '' : author.family_name) )
-        div.form-group.mt-3
-            label(for='date_of_birth') Date of Birth:
+            label.mt-3(for='date_of_birth') Date of Birth:
             input#date_of_birth.form-control(type='date' name='date_of_birth' value=(undefined === author ? '' : author.date_of_birth) )
             label.mt-3(for='date_of_death') Date of Death:
             input#date_of_death.form-control(type='date' name='date_of_death' value=(undefined === author ? '' : author.date_of_death) )

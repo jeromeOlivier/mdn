@@ -2,20 +2,14 @@ const { body } = require("express-validator");
 
 // for author
 const validateAuthorName = [
-        body("first_name")
+        body("first_name", "First name required.")
         .trim()
         .isLength({ min: 1 })
-        .escape()
-        .withMessage("First name required.")
-        .isAlphanumeric()
-        .withMessage("First name has non-alphanumeric characters."),
-    body("family_name")
+        .escape(),
+    body("family_name", "Family name required")
         .trim()
         .isLength({ min: 1 })
-        .escape()
-        .withMessage("Family name required")
-        .isAlphanumeric()
-        .withMessage("Family name has non alphanumeric characters."),
+        .escape(),
 ];
 
 const validateAuthorDates = [

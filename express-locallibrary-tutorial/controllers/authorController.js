@@ -5,6 +5,7 @@ const asyncHandler = require("express-async-handler");
 const Author = require("../models/author");
 const Book = require("../models/book");
 const { validateAuthor } = require("../utils/validators");
+const { generateAuthor } = require("../utils/generators");
 
 /** CREATE **/
 // Display Author create form on GET.
@@ -14,16 +15,13 @@ const author_create_get = asyncHandler(async (req, res, next) => {
 
 // Handle Author create on POST.
 const author_create_post = [
-    validateAuthor, asyncHandler(async (req, res, next) => {
+    validateAuthor,
+    asyncHandler(async (req, res, next) => {
         // extract the validation errors from a request
         const errors = validationResult(req);
-        // create new author object
-        const author = new Author({
-            first_name: req.body.first_name,
-            family_name: req.body.family_name,
-            date_of_birth: req.ody.date_of_birth,
-            date_of_death: req.body.date_of_death,
-        });
+        // generate new author object
+        const author = generateAuthor(req);
+        console.log('validateAuthor',validateAuthor, 'generateAuthor',generateAuthor(req), 'asyncHandler',asyncHandler);
         // if there are errors, re-render form with sanitized values + errors
         if (!errors.isEmpty()) {
             res.render("author_form", {
@@ -35,6 +33,8 @@ const author_create_post = [
             } catch (e) { // if save fails...
                 throw new Error(e);
             }
+            console.log('Created!!!')
+            res.redirect(author.url);
         }
     }),
 ];
@@ -82,13 +82,9 @@ const author_update_post = [
     validateAuthor,
     asyncHandler(async (req, res, next) => {
         const validationErrors = validationResult(req);
-        const author = new Author({
-            first_name: req.body.first_name,
-            family_name: req.body.family_name,
-            date_of_birth: req.body.date_of_birth,
-            date_of_death: req.body.date_of_death,
-            _id: req.params.id,
-        });
+        const author = generateAuthor(req);
+        // attach the author's id
+        author._id = req.params.id;
         if (!validationErrors.isEmpty()) {
             // if there were errors, go back to the form with the sanitized data
             res.render("author_form", {
@@ -98,6 +94,7 @@ const author_update_post = [
             // otherwise update the author
             const updatedAuthor = await Author.findByIdAndUpdate(req.params.id, author, {});
             // redirect to author detail page
+            console.log('Updated!!!')
             res.redirect(updatedAuthor.url);
         }
     }),
