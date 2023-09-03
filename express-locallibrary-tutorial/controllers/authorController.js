@@ -104,13 +104,11 @@ const author_update_post = [
 // Display Author delete form on GET.
 const author_delete_get = asyncHandler(async (req, res, next) => {
     const [author, allBooksByAuthor] = await Promise.all([
-        Author.findById(req.params.id).exec(), Book.find({ author: req.params.id }, "title summary").exec(),
+        Author.findById(req.params.id).exec(),
+        Book.find({ author: req.params.id }, "title summary").exec(),
     ]);
 
-    if (author === null) {
-        // no results
-        res.redirect("/catalog/authors");
-    }
+    if (author === null) res.redirect("/catalog/authors"); // no results
 
     res.render("author_delete", {
         title: "Delete Author", author: author, author_books: allBooksByAuthor,
@@ -125,7 +123,7 @@ const author_delete_post = asyncHandler(async (req, res, next) => {
     ]);
 
     if (allBooksByAuthor.length > 0) {
-        // author has books, send user back
+        // author has books, inform user
         res.render("author_delete", {
             title: "Delete Author", author: author, author_books: allBooksByAuthor,
         });
