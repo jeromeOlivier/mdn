@@ -205,7 +205,8 @@ const book_update_post = [
 const book_delete_get = asyncHandler(async (req, res, next) => {
     // find related book instances
     const [book, bookInstances] = await Promise.all([
-        Book.findById(req.params.id).exec(), BookInstance.find({ book: req.params.id }, "imprint status").exec(),
+        Book.findById(req.params.id).exec(),
+        BookInstance.find({ book: req.params.id }, "imprint status").exec(),
     ]);
 
     if (book === null) res.redirect("/catalog/books"); // no results

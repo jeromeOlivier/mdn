@@ -15,8 +15,7 @@ const genre_create_get = asyncHandler(async (req, res, next) => {
 // Handle Genre create on POST.
 const genre_create_post = [
     // Validate and sanitize the name field.
-    validateGenre,
-    // Process request after validation and sanitization
+    validateGenre, // Process request after validation and sanitization
     asyncHandler(async (req, res, next) => {
         // Extract the validation errors from a request.
         const errors = validationResult(req);
@@ -27,9 +26,7 @@ const genre_create_post = [
         // if there are errors, render the form again with sanitized values & error messages
         if (!errors.isEmpty()) {
             res.render("genre_form", {
-                title: "Create Genre",
-                genre: genre,
-                errors: errors.array(),
+                title: "Create Genre", genre: genre, errors: errors.array(),
             });
         } else {
             // data is valid
@@ -63,8 +60,7 @@ const genre_list = asyncHandler(async (req, res, next) => {
 // Display detail page for a specific Genre.
 const genre_detail = asyncHandler(async (req, res, next) => {
     const [genre, booksInGenre] = await Promise.all([
-        Genre.findById(req.params.id).exec(),
-        Book.find({ genre: req.params.id }, "title summary").exec(),
+        Genre.findById(req.params.id).exec(), Book.find({ genre: req.params.id }, "title summary").exec(),
     ]);
     if (genre === null) {
         const err = new Error("Genre not found");
@@ -72,9 +68,7 @@ const genre_detail = asyncHandler(async (req, res, next) => {
         return next(err);
     }
     res.render("genre_detail", {
-        title: `Genre: ${genre.name}`,
-        genre: genre,
-        genre_books: booksInGenre,
+        title: `Genre: ${ genre.name }`, genre: genre, genre_books: booksInGenre,
     });
 });
 
@@ -82,50 +76,77 @@ const genre_detail = asyncHandler(async (req, res, next) => {
 // Display Genre update form on GET.
 const genre_update_get = asyncHandler(async (req, res, next) => {
     // get all books associated with the genre if there are any
-    const genre = await Genre.findById(req.params.id).orFail(new Error('Genre not found'));
-    res.render('genre_form', {
-        title: 'Update Genre',
-        genre: genre,
-    })
+    const genre = await Genre.findById(req.params.id).orFail(new Error("Genre not found"));
+    res.render("genre_form", {
+        title: "Update Genre", genre: genre,
+    });
 });
 
 // Handle Genre update on POST.
 const genre_update_post = [
-    validateGenre,
-    asyncHandler(async (req, res, next) => {
+    validateGenre, asyncHandler(async (req, res, next) => {
         // extract validation errors from request if any
         const errors = validationResult(req);
         // create new genre object with fresh data
         const genre = new Genre({
-            name: req.body.name,
-             _id: req.params.id,
+            name: req.body.name, _id: req.params.id,
         });
         // throw form back if validation failed
         if (!errors.isEmpty()) {
-            res.render('genre_form', {
-                title: 'Update Genre',
-                genre: genre,
-                errors: errors.array(),
+            res.render("genre_form", {
+                title: "Update Genre", genre: genre, errors: errors.array(),
             });
         } else {
             // if update is valid
             const updatedGenre = await Genre.findByIdAndUpdate(req.params.id, genre, {});
             // redirect to book detail page
-            res.redirect(updatedGenre.url)
+            res.redirect(updatedGenre.url);
         }
     }),
 
 ];
 
 /** DELETE **/
-// todo: Display Genre delete form on GET.
+// Display Genre delete form on GET.
 const genre_delete_get = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Genre delete GET");
+    // find related books
+    const [books, genre] = await Promise.all([
+        Book.find({ genre: req.params.id }).populate("author").exec(), Genre.findById(req.params.id).exec(),
+    ]);
+    // if there are no results
+    if (genre === null) res.redirect("/catalog/genres");
+
+    res.render("genre_delete", {
+        title: "Delete Genre", genre: genre, books: books,
+    });
 });
 
 // todo: Handle Genre delete on POST.
 const genre_delete_post = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Genre delete POST");
+    // Get details of genre and all book instances (in parallel)
+    const [genre, books] = await Promise.all([
+        Genre.findById(req.params.id).exec(),
+        Book.find({ genre: req.params.id }).exec(),
+    ]);
+
+    if (books.length > 0) {
+        // genre still has books associated to it
+        res.render('genre_delete', {
+            title: 'Delete Genre',
+            genre: genre,
+            books: books,
+        });
+    } else {
+        // if genre has no books associated with it
+        try {
+            console.log('genre id:', req.body.genreid);
+            await Genre.findByIdAndRemove(req.body.genreid);
+        } catch (e) {
+            console.log(e);
+            throw new Error(e);
+        }
+        res.redirect('/catalog/genres');
+    }
 });
 
 module.exports = {

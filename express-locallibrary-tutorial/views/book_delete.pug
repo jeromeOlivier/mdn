@@ -10,10 +10,12 @@ block content
             h4 Book Instances
 
             table
+                // todo: fix this, thead contains th
                 thead
                     td imprint
                     td status
                 tbody
+            // todo: fix this, tr contains td
             each book_instance in book_instances
                     tr
                         a(href=book_instance.url) #{book_instance.imprint}
