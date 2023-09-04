@@ -201,7 +201,7 @@ const book_update_post = [
 ];
 
 /** DELETE **/
-// todo: Display book delete form on GET.
+// Display book delete form on GET.
 const book_delete_get = asyncHandler(async (req, res, next) => {
     // find related book instances
     const [book, bookInstances] = await Promise.all([
@@ -215,7 +215,7 @@ const book_delete_get = asyncHandler(async (req, res, next) => {
     });
 });
 
-// todo: Handle book delete on POST.
+// Handle book delete on POST.
 const book_delete_post = asyncHandler(async (req, res, next) => {
     // Get details of book and all book instances (in parallel)
     const [bookInstances] = await Promise.all([

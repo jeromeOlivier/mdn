@@ -4,6 +4,7 @@ const { body, validationResult } = require("express-validator");
 // internal
 const Genre = require("../models/genre");
 const Book = require("../models/book");
+const { validateGenre } = require("../utils/validators");
 
 /** CREATE **/
 // Display Genre create form on GET.
@@ -14,10 +15,7 @@ const genre_create_get = asyncHandler(async (req, res, next) => {
 // Handle Genre create on POST.
 const genre_create_post = [
     // Validate and sanitize the name field.
-    body("name", "Genre must be at least 3 characters")
-        .trim()
-        .isLength({ min: 3 })
-        .escape(),
+    validateGenre,
     // Process request after validation and sanitization
     asyncHandler(async (req, res, next) => {
         // Extract the validation errors from a request.
@@ -81,15 +79,43 @@ const genre_detail = asyncHandler(async (req, res, next) => {
 });
 
 /** UPDATE **/
-// todo: Display Genre update form on GET.
+// Display Genre update form on GET.
 const genre_update_get = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Genre update GET");
+    // get all books associated with the genre if there are any
+    const genre = await Genre.findById(req.params.id).orFail(new Error('Genre not found'));
+    res.render('genre_form', {
+        title: 'Update Genre',
+        genre: genre,
+    })
 });
 
-// todo: Handle Genre update on POST.
-const genre_update_post = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Genre update POST");
-});
+// Handle Genre update on POST.
+const genre_update_post = [
+    validateGenre,
+    asyncHandler(async (req, res, next) => {
+        // extract validation errors from request if any
+        const errors = validationResult(req);
+        // create new genre object with fresh data
+        const genre = new Genre({
+            name: req.body.name,
+             _id: req.params.id,
+        });
+        // throw form back if validation failed
+        if (!errors.isEmpty()) {
+            res.render('genre_form', {
+                title: 'Update Genre',
+                genre: genre,
+                errors: errors.array(),
+            });
+        } else {
+            // if update is valid
+            const updatedGenre = await Genre.findByIdAndUpdate(req.params.id, genre, {});
+            // redirect to book detail page
+            res.redirect(updatedGenre.url)
+        }
+    }),
+
+];
 
 /** DELETE **/
 // todo: Display Genre delete form on GET.

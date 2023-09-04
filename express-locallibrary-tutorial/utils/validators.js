@@ -25,7 +25,7 @@ const validateAuthorDates = [
 
 const validateAuthor = [...validateAuthorName, ...validateAuthorDates];
 
-// for books
+// for books, genres
 const escapeButNotQuotes = (val) =>
     val.replace(
         /[&<>{}]/g,
@@ -47,4 +47,11 @@ const validateBook = [
     body("genre.*").escape(), // genre is an array
 ]
 
-module.exports = { validateAuthor, validateBook }
+const validateGenre = [
+    body("name", "Genre must be at least 3 characters")
+        .trim()
+        .isLength({ min: 3 })
+        .customSanitizer(escapeButNotQuotes),
+];
+
+module.exports = { validateAuthor, validateBook, validateGenre }
