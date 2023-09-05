@@ -4,22 +4,18 @@ block content
     h1 #{title}: #{book.title}
 
     if book_instances.length
-        p #[strong Delete the following book instances before attempting to delete this book.]
+        p.mt-5 #[ Cannot delete this title. The following instances are associated with it.]
 
         div.ml-3.mt-3
-            h4 Book Instances
-
-            table
-                // todo: fix this, thead contains th
-                thead
-                    td imprint
-                    td status
-                tbody
-            // todo: fix this, tr contains td
+        table(class='table table-striped')
+            thead
+                th imprint
+                th status
             each book_instance in book_instances
-                    tr
+                tr
+                    td
                         a(href=book_instance.url) #{book_instance.imprint}
-                    tr #{book_instance.status}
+                    td #{book_instance.status}
     else
         p Do you really want to delete this Book?
 
@@ -27,4 +23,5 @@ block content
             div.form-group
                 input#bookid.form-control(type='hidden', name='bookid', required='true', value=book._id)
 
-            button.btn.btn-primary(type='submit') Delete
+            button.btn.btn-danger(type='submit') Delete
+            button.btn.btn-secondary.ml-3(type='button' onclick='location.href="/catalog/books"') Cancel

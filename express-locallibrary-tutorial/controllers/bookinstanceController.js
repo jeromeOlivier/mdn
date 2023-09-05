@@ -97,7 +97,7 @@ const bookinstance_update_get = asyncHandler(async (req, res, next) => {
     });
 });
 
-// todo: Handle bookinstance update on POST.
+// Handle bookinstance update on POST.
 const bookinstance_update_post = [
     validateBookInstance,
 
@@ -129,14 +129,28 @@ const bookinstance_update_post = [
 ];
 
 /** DELETE **/
-// todo: Display BookInstance delete form on GET.
+// Display BookInstance delete form on GET.
 const bookinstance_delete_get = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: BookInstance delete GET");
+    // confirm that the sent id actually corresponds to something in the database
+    const bookInstance = await BookInstance.findById(req.params.id).exec();
+    // if it doesn't, go back to the list of book instances
+    if (bookInstance === null) res.redirect('/catalog/bookinstances');
+    // if it does, go to the deletion confirmation page
+    res.render('bookinstance_delete', {
+        title: 'Delete Book Instance',
+        book_instance: bookInstance,
+    });
 });
 
-// todo: Handle BookInstance delete on POST.
+// Handle BookInstance delete on POST.
 const bookinstance_delete_post = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: BookInstance delete POST");
+    const bookInstance = await BookInstance.findById(req.body.bookinstanceid);
+    if (bookInstance === null) {
+        res.redirect('/catalog/bookinstances');
+    } else {
+        await BookInstance.findByIdAndRemove(bookInstance._id).exec();
+        res.redirect('/catalog/bookinstances');
+    }
 });
 
 module.exports = {
