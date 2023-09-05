@@ -16,3 +16,9 @@ block content
 
     if bookinstance.status!='Available'
         p #[strong Due:]&nbsp;#{bookinstance.due_back_formatted}
+
+    hr.mb-5
+    button.btn.btn-danger
+        a.text-white(href=bookinstance.url + '/delete') Delete BookInstance
+    button.btn.btn-secondary.ml-3
+        a.text-white(href=bookinstance.url + '/update') Update BookInstance

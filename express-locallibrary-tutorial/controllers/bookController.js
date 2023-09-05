@@ -159,7 +159,6 @@ const book_update_post = [
 
     // validate and sanitize the fields
     validateBook,
-
     // process request after validation and sanitization
     asyncHandler(async (req, res, next) => {
         // extract the validation errors from a request

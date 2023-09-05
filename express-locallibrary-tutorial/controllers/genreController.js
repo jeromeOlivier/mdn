@@ -121,7 +121,7 @@ const genre_delete_get = asyncHandler(async (req, res, next) => {
     });
 });
 
-// todo: Handle Genre delete on POST.
+// Handle Genre delete on POST.
 const genre_delete_post = asyncHandler(async (req, res, next) => {
     // Get details of genre and all book instances (in parallel)
     const [genre, books] = await Promise.all([
