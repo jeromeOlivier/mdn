@@ -139,10 +139,8 @@ const genre_delete_post = asyncHandler(async (req, res, next) => {
     } else {
         // if genre has no books associated with it
         try {
-            console.log('genre id:', req.body.genreid);
             await Genre.findByIdAndRemove(req.body.genreid);
         } catch (e) {
-            console.log(e);
             throw new Error(e);
         }
         res.redirect('/catalog/genres');

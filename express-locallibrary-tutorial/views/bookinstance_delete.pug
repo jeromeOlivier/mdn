@@ -3,7 +3,6 @@ extends layout
 block content
     h1= title
 
-    - console.log('book status is:', book_instance.status);
     if book_instance.status === 'Loaned' || book_instance.status === 'Reserved'
         p This book is marked as #{book_instance.status}. Please update before proceeding.
     else

@@ -231,10 +231,8 @@ const book_delete_post = asyncHandler(async (req, res, next) => {
     } else {
         // if book has no book instances, attempt deletion
         try {
-            console.log("book id:", req.body.bookid);
             await Book.findByIdAndRemove(req.body.bookid);
         } catch (e) {
-            console.log(e);
             throw new Error(e);
         }
         res.redirect("/catalog/books");

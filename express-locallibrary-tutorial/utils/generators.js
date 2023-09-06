@@ -1,6 +1,11 @@
 const Author = require("../models/author");
-const Book = require('../models/book');
+const Book = require("../models/book");
 
+/**
+ * Generates an author object
+ * @param {Object} req - Request object containing author data
+ * @returns {Author} - new author object
+ */
 const generateAuthor = (req) => {
     return new Author({
         first_name: req.body.first_name,

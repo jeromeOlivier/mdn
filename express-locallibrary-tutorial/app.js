@@ -6,6 +6,8 @@ const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const mongoose = require("mongoose");
 const env = require("dotenv");
+const compression = require("compression");
+const helmet = require("helmet");
 // internal imports
 const indexRouter = require("./routes/index");
 const usersRouter = require("./routes/users");
@@ -25,11 +27,19 @@ const mongo = async () => {
     await mongoose.connect(mongoDB);
     console.log(`Connected to MongoDB v${mongoose.version}`);
 };
-
 mongo().catch((err) => console.log(err));
 
 // initialize express app
 const app = express();
+
+// Set up rate limiter: maximum of twenty requests per minute
+const RateLimit = require("express-rate-limit");
+const limiter = RateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 50,
+});
+// Apply rate limiter to all requests
+app.use(limiter);
 
 // setup view engine
 app.set("views", path.join(__dirname, "views"));
@@ -41,6 +51,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+app.use(compression());
+// Add helmet to the middleware chain.
+// Set CSP headers to allow our Bootstrap and Jquery to be served.
+app.use(
+    helmet.contentSecurityPolicy({
+        directives: {
+            "script-src": ["'self'", "code.jquery.com", "cdn.jsdelivr.net"],
+        },
+    }),
+);
 
 // establish routes
 app.use("/", indexRouter);
@@ -54,9 +74,9 @@ app.use("/catalog", catalogRouter);
 app.use((err, req, res, next) => {
     // // set locals, only providing error in development
     // res.locals.message = err.message;
-    // res.locals.error = req.app.get("env") === "development" ? err : {};
+    res.locals.error = req.app.get("env") === "development" ? err : {};
 
-    console.log(err.stack);
+    // console.log(err.stack);
     // render the error page
     // res.status(err.status || 500);
     // res.render("errors");

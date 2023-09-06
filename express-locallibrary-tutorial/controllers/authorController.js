@@ -1,45 +1,79 @@
 // external
 const { validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
+const debug = require("debug")("author");
 // internal
 const Author = require("../models/author");
 const Book = require("../models/book");
-const { validateAuthor } = require("../utils/validators");
 const { generateAuthor } = require("../utils/generators");
+const {
+    validateAuthor,
+    isInTheFuture,
+    isBirthBeforeDeath,
+} = require("../utils/validators");
 
-/** CREATE **/
-// Display Author create form on GET.
+/* CREATE */
+// GET Author Form
 const author_create_get = asyncHandler(async (req, res, next) => {
     res.render("author_form", { title: "Create Author" });
 });
 
-// Handle Author create on POST.
+// POST New Author
 const author_create_post = [
     validateAuthor,
     asyncHandler(async (req, res, next) => {
-        // extract the validation errors from a request
-        const errors = validationResult(req);
-        // generate new author object
-        const author = generateAuthor(req);
-        console.log('validateAuthor',validateAuthor, 'generateAuthor',generateAuthor(req), 'asyncHandler',asyncHandler);
-        // if there are errors, re-render form with sanitized values + errors
-        if (!errors.isEmpty()) {
-            res.render("author_form", {
-                title: "Create Author", author: author, errors: errors.array(),
+        // extract validation errors from request
+        const formValidationErrors = validationResult(req);
+
+        // declare birth and death for logical date conditions
+        const birth = req.body.date_of_birth.toString();
+        const death = req.body.date_of_death.toString();
+
+        if (isInTheFuture(birth)) {
+            formValidationErrors.errors.push({
+                msg: "Date of birth cannot be in the future",
             });
-        } else { // if form data is valid...
+        }
+
+        if (isInTheFuture(death)) {
+            formValidationErrors.errors.push({
+                msg: "Date of death cannot be in the future",
+            });
+        }
+
+        if (!isBirthBeforeDeath(birth, death)) {
+            formValidationErrors.errors.push({
+                msg: "Date of birth cannot be after date of death",
+            });
+        }
+
+        const author = generateAuthor(req);
+
+        // if errors are present, re-render form along with error messages &
+        // sanitized values
+        if (!formValidationErrors.isEmpty()) {
+            debug(`errors on validation ${ formValidationErrors }`);
+            res.status(422).render("author_form", {
+                title: "Create Author",
+                author: author,
+                errors: formValidationErrors.array(),
+            });
+        } else { // if data is valid...
             try {
+                // save author to database
                 await author.save();
+                res.redirect(author.url);
             } catch (e) { // if save fails...
-                throw new Error(e);
+                // Pass error to client
+                res.status(500).render("error_page", {
+                    error: e.message, title: "Database Error",
+                });
             }
-            console.log('Created!!!')
-            res.redirect(author.url);
         }
     }),
 ];
 
-/** READ **/
+/* READ */
 // Display list of all authors
 const author_list = asyncHandler(async (req, res, next) => {
     const allAuthors = await Author.find().sort({ family_name: 1 }).exec();
@@ -52,7 +86,8 @@ const author_list = asyncHandler(async (req, res, next) => {
 const author_detail = asyncHandler(async (req, res, next) => {
     // get details of author and books in parallel
     const [author, allBooksByAuthor] = await Promise.all([
-        Author.findById(req.params.id).exec(), Book.find({ author: req.params.id }, "title summary").exec(),
+        Author.findById(req.params.id).exec(),
+        Book.find({ author: req.params.id }, "title summary").exec(),
     ]);
 
     if (author === null) {
@@ -67,13 +102,17 @@ const author_detail = asyncHandler(async (req, res, next) => {
     });
 });
 
-/** UPDATE **/
+/* UPDATE */
 // Display Author update form on GET
 const author_update_get = asyncHandler(async (req, res, next) => {
     const author = await Author.findById(req.params.id);
     const object = author.toObject();
-    if (object.date_of_birth) object.date_of_birth = object.date_of_birth.toISOString().split("T")[0];
-    if (object.date_of_death) object.date_of_death = object.date_of_death.toISOString().split("T")[0];
+    if (object.date_of_birth) {
+        object.date_of_birth = object.date_of_birth.toISOString().split("T")[0];
+    }
+    if (object.date_of_death) {
+        object.date_of_death = object.date_of_death.toISOString().split("T")[0];
+    }
     res.render("author_form", { title: "Author Form", author: object });
 });
 
@@ -94,13 +133,12 @@ const author_update_post = [
             // otherwise update the author
             const updatedAuthor = await Author.findByIdAndUpdate(req.params.id, author, {});
             // redirect to author detail page
-            console.log('Updated!!!')
             res.redirect(updatedAuthor.url);
         }
     }),
 ];
 
-/** DELETE **/
+/* DELETE */
 // Display Author delete form on GET.
 const author_delete_get = asyncHandler(async (req, res, next) => {
     const [author, allBooksByAuthor] = await Promise.all([
@@ -108,7 +146,9 @@ const author_delete_get = asyncHandler(async (req, res, next) => {
         Book.find({ author: req.params.id }, "title summary").exec(),
     ]);
 
-    if (author === null) res.redirect("/catalog/authors"); // no results
+    if (author === null) {
+        res.redirect("/catalog/authors");
+    } // no results
 
     res.render("author_delete", {
         title: "Delete Author", author: author, author_books: allBooksByAuthor,
@@ -119,18 +159,20 @@ const author_delete_get = asyncHandler(async (req, res, next) => {
 const author_delete_post = asyncHandler(async (req, res, next) => {
     // Get details of author and all their books (in parallel)
     const [author, allBooksByAuthor] = await Promise.all([
-        Author.findById(req.params.id).exec(), Book.find({ author: req.params.id }, "title summary").exec(),
+        Author.findById(req.params.id).exec(),
+        Book.find({ author: req.params.id }, "title summary").exec(),
     ]);
 
     if (allBooksByAuthor.length > 0) {
         // author has books, inform user
         res.render("author_delete", {
-            title: "Delete Author", author: author, author_books: allBooksByAuthor,
+            title: "Delete Author",
+            author: author,
+            author_books: allBooksByAuthor,
         });
     } else {
         // if author has no books, attempt deletion
         try {
-            console.log("request:", req.body);
             await Author.findByIdAndRemove(req.body.authorid);
         } catch (e) {
             throw new Error(e);
