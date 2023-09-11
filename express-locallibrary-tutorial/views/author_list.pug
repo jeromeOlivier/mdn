@@ -14,16 +14,18 @@ block content
                 td
                     a(href=author.url) #{author.name}
                 if author.date_of_birth
-                    td #{author.date_of_birth_formatted}
+                    td= author.date_of_birth_formatted
                 else
                     td
                 if author.date_of_death
-                    td #{author.date_of_death_formatted}
+                    td= author.date_of_death_formatted
                 else
                     td
-                if author.lifespan != "data missing"
-                    td #{author.lifespan.years}y #{author.lifespan.months}m #{Math.round(author.lifespan.days)}d
+                if author.age
+                    td= author.age
                 else
-                    td #{author.lifespan}
+                    td
         else
             tr(span="col=2") There are no authors in this database.
+
+        // Path: views/author_list.pug

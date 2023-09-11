@@ -1,7 +1,7 @@
 extends layout
 
 block content
-    h1 #{title}
+    h1= title
 
     form(method='POST' action='')
         div.form-group
@@ -11,5 +11,7 @@ block content
 
             if errors
                 ul
-                    for error in errors
+                    each error in errors
                         li!= error.msg
+
+    // Path: views/genre_form.pug

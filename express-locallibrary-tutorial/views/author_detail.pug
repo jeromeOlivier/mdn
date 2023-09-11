@@ -1,25 +1,23 @@
 extends layout
 
 block content
+    h1= 'Author: ' + author.name
+    p= author.lifespan
 
-    h1 Author: #{author.name}
-    p #{author.date_of_birth_formatted} - #{author.date_of_death_formatted}
+    if author_books.length
+        div(style='margin-left:20px;margin-top:20px')
+            h4 Books
 
-    div(style='margin-left:20px;margin-top:20px')
+            dl
+                each book in author_books
+                    dt
+                        a(href=book.url)= book.title
+                    dd= book.summary
+    else
+        p No titles associated with this author
 
-        h4 Books
+    hr
+    a.btn.btn-danger(href=author.url + '/delete') Delete Author
+    a.btn.btn-secondary.ml-3(href=author.url + '/update') Update Author
 
-        dl
-            each book in author_books
-                dt
-                    a(href=book.url) #{book.title}
-                dd #{book.summary}
-
-            else
-                p No titles associated with this author
-
-        hr
-        button.btn.btn-danger
-            a.text-white(href=author.url + '/delete') Delete Author
-        button.btn.btn-secondary.ml-3
-            a.text-white(href=author.url + '/update') Update Author
+    // Path: views/author_detail.pug

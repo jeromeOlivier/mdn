@@ -1,12 +1,39 @@
-// external
+// Purpose: Handle requests relating to Genre model
+//
+// Methods:
+//     * CREATE
+//     - genre_create_get: display genre create form on GET
+//     - genre_create_post: handle genre creation on POST
+//     * READ
+//     - genre_list: display list of all genres
+//     - genre_detail: display detail page for a specific genre
+//     * UPDATE
+//     - genre_update_get: display genre update form on GET
+//     - genre_update_post: handle genre update on POST
+//     * DELETE
+//     - genre_delete_get: display genre delete form on GET
+//     - genre_delete_post: handle genre deletion on POST
+//
+// Notes:
+//     - genre_create_post and genre_update_post are middleware arrays
+//     - genre_create_post and genre_update_post are composed of three steps:
+//         1. validate and sanitize the fields
+//         2. process request after validation and sanitization
+//         3. update req object: convert genre field to an array of genres
+//     - genre_delete_post is composed of two steps:
+//         1. get relevant data and genre delete page
+//         2. delete genre
+
+// EXTERNAL DEPENDENCIES
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
-// internal
+
+// INTERNAL DEPENDENCIES
 const Genre = require("../models/genre");
 const Book = require("../models/book");
 const { validateGenre } = require("../utils/validators");
 
-/** CREATE **/
+// CREATE
 // Display Genre create form on GET.
 const genre_create_get = asyncHandler(async (req, res, next) => {
     res.render("genre_form", { title: "Create Genre" });
@@ -50,7 +77,7 @@ const genre_create_post = [
     }),
 ];
 
-/** READ **/
+// READ
 // Display list of all Genre.
 const genre_list = asyncHandler(async (req, res, next) => {
     const allGenres = await Genre.find().sort({ name: 1 }).exec();
@@ -72,7 +99,7 @@ const genre_detail = asyncHandler(async (req, res, next) => {
     });
 });
 
-/** UPDATE **/
+// UPDATE
 // Display Genre update form on GET.
 const genre_update_get = asyncHandler(async (req, res, next) => {
     // get all books associated with the genre if there are any
@@ -106,7 +133,7 @@ const genre_update_post = [
 
 ];
 
-/** DELETE **/
+// DELETE
 // Display Genre delete form on GET.
 const genre_delete_get = asyncHandler(async (req, res, next) => {
     // find related books

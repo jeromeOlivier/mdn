@@ -1,0 +1,13 @@
+extends layout
+
+block content
+    h1 Error
+
+    if message
+        p Message: #{message}
+    if app.get('env') === 'development'
+        // Only show detailed error info in development
+        if error.stack
+            pre Error Stack: #{error.stack}
+
+    // Path: views/error_page.pug

@@ -24,7 +24,8 @@
         "mongoose": "^7.4.4",
         "morgan": "~1.10.0",
         "prettier": "^3.0.2",
-        "pug": "^3.0.2"
+        "pug": "^3.0.2",
+        "serve-favicon": "^2.5.0"
     },
     "prettier": {
         "singleQuote": false,

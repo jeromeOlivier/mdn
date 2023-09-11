@@ -3,38 +3,43 @@ extends layout
 block content
     h1= title
 
-    p.mt-5 #[strong Author:]&nbsp;
+    p.mt-5
+        strong Author:&nbsp;
         a(href=book.author.url) #{book.author.name}
-    p.mt-3 #[strong Summary:]&nbsp;#{book.summary}
-    p.mt-3 #[strong ISBN:]&nbsp;#{book.isbn}
-    p.mt-3 #[strong Genre:]&nbsp;
-        each val, index in book.genre
-            a(href=val.url) #{val.name}
+    p.mt-3
+        strong Summary: #{book.summary}
+    p.mt-3
+        strong ISBN: #{book.isbn}
+    p.mt-3
+        strong Genre:&nbsp;
+        each genre, index in book.genre
+            a(href=genre.url) #{genre.name}
             if index < book.genre.length - 1
-                | ,&nbsp;
+                | ,
 
     div.mt-5
         h4 Copies
 
-        each val in book_instances
+        each instance in book_instances
             hr
-            if val.status==='Available'
-                p.text-success #{val.status}
-            else if val.status==='Maintenance'
-                p.text-danger #{val.status}
+            if instance.status==='Available'
+                p.text-success #{instance.status}
+            else if instance.status==='Maintenance'
+                p.text-danger #{instance.status}
             else
-                p.text-warning #{val.status}
-            p #[strong Imprint:] #{val.imprint}
-            if val.status!=='Available'
-                p #[strong Due back:] #{val.due_back}
+                p.text-warning #{instance.status}
+            p #[strong Imprint:] #{instance.imprint}
+            if instance.status!=='Available'
+                p #[strong Due back:] #{instance.due_back}
             p #[strong Id:]&nbsp;
-                a(href=val.url) #{val._id}
+                a(href=instance.url) #{instance._id}
 
         else
             p No copies found
 
         hr.mb-5
-        button.btn.btn-danger
-            a.text-white(href=book.url+'/delete') Delete Book
-        button.btn.btn-secondary.ml-3
-            a.text-white(href=book.url+'/update') Update Book
+        div.button-container
+            a.btn.btn-danger.text-white(href=book.url+'/delete') Delete Book
+            a.btn.btn-secondary.ml-3.text-white(href=book.url+'/update') Update Book
+
+    // Path: views/book_detail.pug

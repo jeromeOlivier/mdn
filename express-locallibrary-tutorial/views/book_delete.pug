@@ -1,10 +1,10 @@
 extends layout
 
 block content
-    h1 #{title}: #{book.title}
+    h1= 'Title: ' + book.title
 
     if book_instances.length
-        p.mt-5 #[ Cannot delete this title. The following instances are associated with it.]
+        p.mt-5 Cannot delete this title. The following instances are associated with it.
 
         div.ml-3.mt-3
         table(class='table table-striped')
@@ -25,3 +25,5 @@ block content
 
             button.btn.btn-danger(type='submit') Delete
             button.btn.btn-secondary.ml-3(type='button' onclick='location.href="/catalog/books"') Cancel
+
+    // Path: views/book_delete.pug

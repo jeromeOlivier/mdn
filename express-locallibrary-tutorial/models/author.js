@@ -11,44 +11,52 @@ const AuthorSchema = new Schema({
 });
 
 // Virtual for author's full name
-AuthorSchema.virtual("name").get(function () {
+AuthorSchema.virtual("name").get(function() {
     let fullname = "";
     if (this.first_name && this.family_name) {
-        fullname = `${this.family_name}, ${this.first_name}`;
+        fullname = `${ this.family_name }, ${ this.first_name }`;
     }
     return fullname;
 });
 
 // Virtual for author's lifespan
-AuthorSchema.virtual("lifespan").get(function () {
+AuthorSchema.virtual("lifespan").get(function() {
+    // format dates, avoid date slippage
+    const birth = this.date_of_birth ? DateTime.fromJSDate(this.date_of_birth)
+                                               .toUTC()
+                                               .toLocaleString(DateTime.DATE_MED) : "";
+    const death = this.date_of_death ? DateTime.fromJSDate(this.date_of_death)
+                                               .toUTC()
+                                               .toLocaleString(DateTime.DATE_MED) : "";
+
     if (this.date_of_birth && this.date_of_death) {
-        const death = DateTime.fromJSDate(this.date_of_death);
-        const birth = DateTime.fromJSDate(this.date_of_birth);
-        return death.diff(birth, ["years", "months", "days"]).toObject();
+        return `${ birth } - ${ death }`;
     } else if (this.date_of_birth !== undefined) {
-        const now = DateTime.now();
-        const birth = DateTime.fromJSDate(this.date_of_birth);
-        return now.diff(birth, ["years", "months", "days"]).toObject();
+        return `${ birth } -`;
     } else {
-        return "data missing";
+        return "";
     }
 });
 
-AuthorSchema.virtual("date_of_birth_formatted").get(function () {
-    return DateTime.fromJSDate(this.date_of_birth).toLocaleString(
-        DateTime.DATE_MED
-    );
+AuthorSchema.virtual("date_of_birth_formatted").get(function() {
+    return this.date_of_birth ? DateTime.fromJSDate(this.date_of_birth)
+                                        .toLocaleString(DateTime.DATE_MED) : "";
 });
-
-AuthorSchema.virtual("date_of_death_formatted").get(function () {
-    return DateTime.fromJSDate(this.date_of_death).toLocaleString(
-        DateTime.DATE_MED
-    );
+AuthorSchema.virtual("date_of_death_formatted").get(function() {
+    return this.date_of_death ? DateTime.fromJSDate(this.date_of_death)
+                                        .toLocaleString(DateTime.DATE_MED) : "";
+});
+AuthorSchema.virtual("age").get(function() {
+    const now = (this.date_of_death) ? this.date_of_death : new Date();
+    if (this.date_of_birth) {
+        const age = Math.floor((now - this.date_of_birth) / 1000 / 60 / 60 / 24 / 365);
+        return `${ age } yrs`;
+    } else return "";
 });
 
 // Virtual for author's URL
-AuthorSchema.virtual("url").get(function () {
-    return `/catalog/author/${this._id}`;
+AuthorSchema.virtual("url").get(function() {
+    return `/catalog/author/${ this._id }`;
 });
 
 // Export model

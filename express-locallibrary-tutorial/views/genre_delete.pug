@@ -1,7 +1,7 @@
 extends layout
 
 block content
-    h1 #{title}: #{genre.name}
+    h1= title + ':' + genre.name
 
     if books.length
         p #[strong Delete the following books before attempting to delete this genre.]
@@ -29,3 +29,5 @@ block content
                 input#genreid.form-control(type='hidden' name='genreid', required='true', value=genre._id)
 
             button.btn.btn-primary(type='submit') Delete
+
+    // Path: views/genre_delete.pug

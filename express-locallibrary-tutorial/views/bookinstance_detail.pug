@@ -2,11 +2,13 @@ extends layout
 
 block content
 
-    h1 ID: #{bookinstance._id}
+    h1= 'ID: ' + bookinstance._id
 
-    p #[strong Title:]&nbsp;
+    p
+        strong Title:&nbsp;
         a(href=bookinstance.book.url) #{bookinstance.book.title}
-    p #[strong Imprint:]&nbsp;
+    p
+        strong Imprint:&nbsp;
         if bookinstance.status=='Available'
             span.text-success #{bookinstance.status}
         else if bookinstance.status=='Maintenance'
@@ -15,10 +17,13 @@ block content
             span.text-warning #{bookinstance.status}
 
     if bookinstance.status!='Available'
-        p #[strong Due:]&nbsp;#{bookinstance.due_back_formatted}
+        p
+            strong Due: #{bookinstance.due_back_formatted}
 
     hr.mb-5
     button.btn.btn-danger
         a.text-white(href=bookinstance.url + '/delete') Delete BookInstance
     button.btn.btn-secondary.ml-3
         a.text-white(href=bookinstance.url + '/update') Update BookInstance
+
+    // Path: views/bookinstance_detail.pug
