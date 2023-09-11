@@ -125,14 +125,13 @@ const isInTheFuture = (date, type) => {
  * Check if birth was before death. If either date is missing, assume true.
  * @param {string} birth - first date to check
  * @param {string} death - second date to check
- * @returns {Object} - An object with 'isWrongOrder' boolean and 'message'
- * string.
+ * @returns {Object} - An object with 'isWrong' boolean and 'message' string.
  * */
 const isBirthBeforeDeath = (birth, death) => {
     const birthDate = new Date(birth);
     const deathDate = new Date(death);
     const check = {
-        isWrongOrder: true,
+        isWrong: false,
         message: "",
     };
     if (
@@ -140,7 +139,7 @@ const isBirthBeforeDeath = (birth, death) => {
         && isValidDate(deathDate)
         && (birthDate > deathDate)
     ) {
-        check.isWrongOrder = true;
+        check.isWrong = true;
         check.message = "Date of birth cannot be after date of death";
         return check;
     }

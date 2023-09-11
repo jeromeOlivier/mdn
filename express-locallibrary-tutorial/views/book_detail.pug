@@ -30,7 +30,7 @@ block content
                 p.text-warning #{instance.status}
             p #[strong Imprint:] #{instance.imprint}
             if instance.status!=='Available'
-                p #[strong Due back:] #{instance.due_back}
+                p #[strong Due back:] #{instance.due_back_formatted}
             p #[strong Id:]&nbsp;
                 a(href=instance.url) #{instance._id}
 

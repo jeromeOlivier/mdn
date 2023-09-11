@@ -58,17 +58,17 @@ const author_create_post = [
         const formValidationErrors = validationResult(req);
 
         // sanity check for birth and death dates
-        /** @type {String[]} */
+        /** @type {Object} */
         const dateOf = {
             birth: req.body.date_of_birth,
             death: req.body.date_of_death,
         };
-        let date = isInTheFuture(dateOf.birth, "Date of birth");
-        if (date.isAfterToday) formValidationErrors.errors.push(date.errorMessage);
-        date = isInTheFuture(dateOf.death, "Date of death");
-        if (date.isAfterToday) formValidationErrors.errors.push(date.errorMessage);
-        date = isBirthBeforeDeath(dateOf.birth, dateOf.death);
-        if (date.isWrongOrder) formValidationErrors.errors.push(date.errorMessage);
+        const birth = isInTheFuture(dateOf.birth, "Date of birth");
+        if (birth.isAfterToday) formValidationErrors.errors.push(birth.errorMessage);
+        const death = isInTheFuture(dateOf.death, "Date of death");
+        if (death.isAfterToday) formValidationErrors.errors.push(death.errorMessage);
+        const order = isBirthBeforeDeath(dateOf.birth, dateOf.death);
+        if (order.isWrong) formValidationErrors.errors.push(order.errorMessage);
 
         // generate author object
         /** @type {Author} */
@@ -121,8 +121,6 @@ const author_detail = asyncHandler(async (req, res, next) => {
         Book.find({ author: req.params.id }, "title summary").exec(),
     ]);
 
-    console.log('author object:', author);
-
     if (author === null) {
         // No results
         return res.status(404).render("error_page",
@@ -162,17 +160,17 @@ const author_update_post = [
         const formValidationErrors = validationResult(req);
 
         // sanity check for birth and death dates
-        /** @type {String[]} */
+        /** @type {Object} */
         const dateOf = {
             birth: req.body.date_of_birth,
             death: req.body.date_of_death,
         };
-        let check = isInTheFuture(dateOf.birth, "Date of birth");
-        if (check.isAfterToday) formValidationErrors.errors.push(check.errorMessage);
-        check = isInTheFuture(dateOf.death, "Date of death");
-        if (check.isAfterToday) formValidationErrors.errors.push(check.errorMessage);
-        check = isBirthBeforeDeath(dateOf.birth, dateOf.death);
-        if (check.isWrongOrder) formValidationErrors.errors.push(check.errorMessage);
+        const birth = isInTheFuture(dateOf.birth, "Date of birth");
+        if (birth.isAfterToday) formValidationErrors.errors.push(birth.errorMessage);
+        const death = isInTheFuture(dateOf.death, "Date of death");
+        if (death.isAfterToday) formValidationErrors.errors.push(death.errorMessage);
+        const order = isBirthBeforeDeath(dateOf.birth, dateOf.death);
+        if (order.isWrong) formValidationErrors.errors.push(order.errorMessage);
 
         // generate author object
         /** @type {Author} */
@@ -181,6 +179,7 @@ const author_update_post = [
         author._id = req.params.id;
 
         if (!formValidationErrors.isEmpty()) {
+            console.log("errors on validation", formValidationErrors)
             // if there were errors, go back to the form with the sanitized data
             res.render("author_form",
                 {
@@ -191,6 +190,7 @@ const author_update_post = [
         } else {
             // if there were no errors, update the author
             try {
+                console.log("updating author");
                 await Author.findByIdAndUpdate(req.params.id, author, {});
                 console.log("author updated");
                 res.redirect(author.url);

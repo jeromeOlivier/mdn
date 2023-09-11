@@ -104,6 +104,7 @@ const bookinstance_detail = asyncHandler(async (req, res, next) => {
                                            .populate("book")
                                            .exec();
 
+    console.log(bookInstance);
     if (bookInstance === null) {
         // no results
         const err = new Error("Book copy not found");

@@ -22,9 +22,7 @@ BookInstanceSchema.virtual("url").get(function () {
 
 // Virtual for book_instance's due date
 BookInstanceSchema.virtual("due_back_formatted").get(function () {
-    return DateTime.fromJSDate(this.due_back).toLocaleString(
-        DateTime.DATE_HUGE
-    );
+    return DateTime.fromJSDate(this.due_back).toUTC().toLocaleString(DateTime.DATE_MED);
 });
 
 // Due back date virtual yyyy_mm_dd
